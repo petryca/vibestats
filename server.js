@@ -24,6 +24,7 @@ if (!process.env.DATABASE_URL) {
 
 const sql = postgres(process.env.DATABASE_URL, {
   ssl: process.env.DATABASE_URL.includes('localhost') ? false : 'require',
+  prepare: false,
 });
 
 const app = express();
