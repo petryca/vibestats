@@ -1,0 +1,61 @@
+# --- dependencies ---
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# --- build output ---
+dist/
+dashboard/dist/
+build/
+.vite/
+
+# --- environment / secrets ---
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# --- logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# --- runtime / cache ---
+.cache/
+.parcel-cache/
+.npm/
+.eslintcache
+.svelte-kit/
+coverage/
+*.pid
+*.seed
+*.pid.lock
+
+# --- editor / IDE ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS junk ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- local-only ---
+*.local
+tmp/
+temp/
+.claude/settings.local.json

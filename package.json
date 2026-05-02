@@ -1,0 +1,32 @@
+{
+  "name": "vibestats",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:server": "node --watch server.js",
+    "dev:dashboard": "vite",
+    "build": "vite build",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "postgres": "^3.4.4",
+    "ua-parser-js": "^1.0.37",
+    "geoip-lite": "^1.4.10",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0",
+    "svelte": "^4.2.15",
+    "@sveltejs/vite-plugin-svelte": "^3.1.0",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "d3-array": "^3.2.4",
+    "d3-time": "^3.1.0",
+    "d3-time-format": "^4.1.0"
+  }
+}
