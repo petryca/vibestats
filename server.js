@@ -262,7 +262,7 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'internal error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`vibestats listening on :${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`vibestats listening on 0.0.0.0:${PORT}`);
   console.log(`allowed domains: ${ALLOWED_DOMAINS.join(', ') || '(none)'}`);
 });
