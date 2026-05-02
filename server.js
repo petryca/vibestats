@@ -15,7 +15,6 @@ const ALLOWED_DOMAINS = (process.env.ALLOWED_DOMAINS || '')
   .split(',')
   .map((d) => d.trim().toLowerCase())
   .filter(Boolean);
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is required');
@@ -73,10 +72,14 @@ const trackerTemplate = `(function(){
   } catch (e) {}
 })();`;
 
-app.get('/track.js', (_req, res) => {
+function baseUrl(req) {
+  return process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+}
+
+app.get('/track.js', (req, res) => {
   const body = trackerTemplate
     .replace('__ALLOWED__', JSON.stringify(ALLOWED_DOMAINS))
-    .replace('__ENDPOINT__', `${PUBLIC_BASE_URL}/collect`);
+    .replace('__ENDPOINT__', `${baseUrl(req)}/collect`);
   res.type('application/javascript');
   res.set('Cache-Control', 'public, max-age=300');
   res.send(body);
@@ -232,7 +235,8 @@ if (hasBuild) {
   app.use('/assets', express.static(path.join(DIST, 'assets'), { maxAge: '1y', immutable: true }));
 }
 
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
+  const url = baseUrl(req);
   res.type('html').send(`<!doctype html><meta charset="utf-8">
     <title>vibestats</title>
     <style>body{font-family:system-ui;max-width:600px;margin:4rem auto;padding:0 1rem}</style>
@@ -240,7 +244,7 @@ app.get('/', (_req, res) => {
     <p>Tracked domains:</p>
     <ul>${ALLOWED_DOMAINS.map((d) => `<li><a href="/${d}/">${d}</a></li>`).join('')}</ul>
     <p>Embed snippet:</p>
-    <pre style="background:#f4f4f4;padding:1rem;overflow:auto">&lt;script async src="${PUBLIC_BASE_URL}/track.js"&gt;&lt;/script&gt;</pre>`);
+    <pre style="background:#f4f4f4;padding:1rem;overflow:auto">&lt;script async src="${url}/track.js"&gt;&lt;/script&gt;</pre>`);
 });
 
 function serveDashboard(req, res, next) {
