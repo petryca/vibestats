@@ -11,9 +11,14 @@ import fs from 'node:fs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = process.env.PORT || 3000;
+// Treat `www.` and the apex as the same site: strip a leading www. everywhere
+// a host is matched or stored.
+const normalizeDomain = (d) =>
+  String(d || '').trim().toLowerCase().replace(/^www\./, '');
+
 const ALLOWED_DOMAINS = (process.env.ALLOWED_DOMAINS || '')
   .split(',')
-  .map((d) => d.trim().toLowerCase())
+  .map(normalizeDomain)
   .filter(Boolean);
 
 if (!process.env.DATABASE_URL) {
@@ -38,7 +43,7 @@ const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch
 const trackerTemplate = `(function(){
   var allowed = __ALLOWED__;
   var endpoint = "__ENDPOINT__";
-  var host = location.hostname.toLowerCase();
+  var host = location.hostname.toLowerCase().replace(/^www\./, "");
   if (allowed.indexOf(host) === -1) {
     alert("VIBESTATS: domain " + host + " is not authorized for tracking.");
     return;
@@ -114,7 +119,7 @@ app.post('/collect', ah(async (req, res) => {
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
-  const domain = String(body.d || '').toLowerCase();
+  const domain = normalizeDomain(body.d);
   if (!ALLOWED_DOMAINS.includes(domain)) {
     return res.status(204).end();
   }
@@ -147,7 +152,7 @@ app.get('/api/domains', (_req, res) => {
 });
 
 app.get('/api/stats/:domain', ah(async (req, res) => {
-  const domain = req.params.domain.toLowerCase();
+  const domain = normalizeDomain(req.params.domain);
   if (!ALLOWED_DOMAINS.includes(domain)) {
     return res.status(404).json({ error: 'unknown domain' });
   }
@@ -248,7 +253,7 @@ app.get('/', (req, res) => {
 });
 
 function serveDashboard(req, res, next) {
-  const domain = req.params.domain.toLowerCase();
+  const domain = normalizeDomain(req.params.domain);
   if (!ALLOWED_DOMAINS.includes(domain)) return next();
   if (!hasBuild) {
     return res.status(503).type('text').send('Dashboard not built yet. Run: npm install && npm run build');
