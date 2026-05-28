@@ -21,6 +21,13 @@ const ALLOWED_DOMAINS = (process.env.ALLOWED_DOMAINS || '')
   .map(normalizeDomain)
   .filter(Boolean);
 
+// Treat `/`, `/index.html`, `/foo/index.html`, etc. as the same page by
+// stripping a trailing `index.{html,htm,php}`.
+const normalizePath = (p) => {
+  const s = String(p || '/').replace(/\/index\.(html?|php)$/i, '/');
+  return s || '/';
+};
+
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is required');
   process.exit(1);
@@ -134,7 +141,7 @@ app.post('/collect', ah(async (req, res) => {
     values (
       ${domain},
       ${dailyVisitorId(ip, uaString)},
-      ${String(body.p || '/').slice(0, 500)},
+      ${normalizePath(body.p).slice(0, 500)},
       ${body.r ? String(body.r).slice(0, 500) : null},
       ${extractSearchTerm(body.r)},
       ${geo?.country || null},
@@ -201,6 +208,14 @@ app.get('/api/stats/:domain', ah(async (req, res) => {
         select coalesce(nullif(referrer, ''), '(direct)') as key, count(*)::int as value
         from events
         where domain = ${domain} and created_at >= ${since}
+          and (
+            referrer is null
+            or referrer = ''
+            or regexp_replace(
+                 coalesce(substring(referrer from 'https?://([^/:?#]+)'), ''),
+                 '^www\.', ''
+               ) <> ${domain}
+          )
         group by 1 order by value desc limit 10
       `,
       sql`
@@ -210,7 +225,12 @@ app.get('/api/stats/:domain', ah(async (req, res) => {
         group by 1 order by value desc limit 10
       `,
       sql`
-        select path as key, count(*)::int as value
+        select
+          coalesce(
+            nullif(regexp_replace(path, '/index\.(html?|php)$', '/'), ''),
+            '/'
+          ) as key,
+          count(*)::int as value
         from events
         where domain = ${domain} and created_at >= ${since}
         group by 1 order by value desc limit 10
